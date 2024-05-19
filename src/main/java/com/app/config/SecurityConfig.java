@@ -31,15 +31,6 @@ import java.util.List;
 public class SecurityConfig {
 
     //Se definen los filtros y el DelegatingFilterProxy, es decir las reglas, condiciones.
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-//        return httpSecurity
-//                .csrf(csrf -> csrf.disable())//autenticación basada en token que se guardan en las cookies. Cuando trabajamos con aplicaciones REST esto no lo necesitamos a esta protección, se usa en formularios.
-//                .httpBasic(Customizer.withDefaults())
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))//cuando trabajamos con app web es necesario una sesión sin estado. Esto quiere decir, que cuando un usuario se logea se crea un objeto en memoria y esto es pesado.
-//                .build();
-//    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
@@ -68,6 +59,7 @@ public class SecurityConfig {
     }
 
     //Configura del Authentication Provider, se pasa por parametro el servicio implementado personalizado
+    //Mediante el Servicio UserDetailsServiceImpl se conecta a la base de datos para buscar los usuarios
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsServiceImpl userDetailsServiceImpl){
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();//Necesita el Password Encode (que es el que encripta las password)
@@ -76,24 +68,6 @@ public class SecurityConfig {
         provider.setUserDetailsService(userDetailsServiceImpl);
         return provider;
     }
-
-    //se debe conectar a la base de datos para buscar los usuarios
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-//        List<UserDetails> userDetailsList = new ArrayList<>();
-//        userDetailsList.add(User.withUsername("pepe")
-//                .password("1234")
-//                .roles("ADMIN")
-//                .authorities("READ", "CREATE")
-//                .build());
-//        userDetailsList.add(User.withUsername("pepa")
-//                .password("1234")
-//                .roles("USER")
-//                .authorities("READ")
-//                .build());
-//
-//        return new InMemoryUserDetailsManager(userDetailsList);
-//    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
