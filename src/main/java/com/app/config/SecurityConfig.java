@@ -1,6 +1,9 @@
 package com.app.config;
 
+import com.app.config.filter.JwtValidator;
 import com.app.service.UserDetailsServiceImpl;
+import com.app.util.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,6 +24,7 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +33,10 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity// permite mediante annotations configurar los filtros.
 public class SecurityConfig {
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
 
     //Se definen los filtros y el DelegatingFilterProxy, es decir las reglas, condiciones.
     @Bean
@@ -39,16 +47,18 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))//cuando trabajamos con app web es necesario una sesión sin estado. Esto quiere decir, que cuando un usuario se logea se crea un objeto en memoria y esto es pesado.
                 .authorizeHttpRequests(http -> {
                     //configurar los endpoint publicos
-                    http.requestMatchers(HttpMethod.GET, "/auth/get").permitAll();
+                    http.requestMatchers("/auth/**").permitAll();
 
                     //configurar los endpoint privados
                     //http.requestMatchers(HttpMethod.POST, "/auth/post").hasAnyAuthority("CREATE", "READ");
-                    http.requestMatchers(HttpMethod.POST, "/auth/post").hasRole("ADMIN");
-                    http.requestMatchers(HttpMethod.PATCH, "/auth/patch").hasAuthority("REFACTOR");
+                    http.requestMatchers(HttpMethod.POST, "/method/post").hasRole("ADMIN");
+                    http.requestMatchers(HttpMethod.PATCH, "/method/patch").hasAuthority("REFACTOR");
+                    http.requestMatchers(HttpMethod.GET, "/method/get").hasAnyRole("INVITED", "TEST");
 
                     //configurar el resto de endpoint - NO ESPECIFIDOS
                     http.anyRequest().denyAll();
                 })
+                .addFilterBefore(new JwtValidator(jwtUtils), BasicAuthenticationFilter.class)
                 .build();
     }
 
